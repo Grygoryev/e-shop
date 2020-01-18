@@ -1,8 +1,10 @@
-// import getData from './modules/getData'
 
 const goodsContent = document.getElementById('goods')
 let url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2'
 const NOTES_PER_PAGE = 15;
+let amountOfGoodsInCart = localStorage.getItem('goodsInCart') ? localStorage.getItem('goodsInCart') : 0
+
+let boundServeGoods = serveGoods.bind(this)
 
 function pageButtons(pages) {
   let wrapper = document.getElementById('goods-pagination')
@@ -24,6 +26,7 @@ function pageButtons(pages) {
             sliceEnd = this.value * NOTES_PER_PAGE + sliceStart
 
         renderData(arrOfData, sliceStart, sliceEnd)
+        boundServeGoods()
     })
   })
 }
@@ -34,6 +37,7 @@ function paginate(goodsPerPage = 15, data) {
   pageButtons(pages, data, renderData)
 }
 
+
 function renderGood(good) {
   return (
     `
@@ -43,11 +47,31 @@ function renderGood(good) {
           <p class="good__description">${good.about}</p>
           <p class="good__price"> <b>Цена: </b> ${good.price}</p>
           <p class="good__available"> ${good.isInShop ? '<b> В наличии </b>' : 'Товара нет в наличии'}</p>
-          <button class="good__buy-btn btn blue">Добавить в корзину</button> 
+          <button class="good__buy-btn btn blue" id="goodItem${good.index}">Добавить в корзину</button> 
         </figure>  
       `
   )
 }
+
+function serveGoods() {
+  let goods = document.querySelectorAll('.good')
+  let cartIndicator = document.querySelector('.amount-in-cart')
+  cartIndicator.innerHTML = localStorage.getItem('goodsInCart')
+
+  goods.forEach( function(good) {
+    good.addEventListener('click', (e) => {
+      if (e.target.classList.contains('good__buy-btn')) {
+        amountOfGoodsInCart++
+        localStorage.setItem('goodsInCart', amountOfGoodsInCart)
+        console.log(amountOfGoodsInCart)
+        cartIndicator.innerHTML = localStorage.getItem('goodsInCart')
+        // localStorage.key('goodsInCart') ? localStorage.getItem('goodsInCart') : amountOfGoodsInCart
+      }
+    })
+  })
+}
+
+console.log( localStorage.getItem('goodsInCart') )
 
 function renderData(data, sliceStart, sliceEnd) {
   goodsContent.innerHTML = ''
@@ -63,6 +87,7 @@ const getData = () => {
       renderData(data, 0, 15)
       data.map(good => arrOfData.push(good))
       paginate(NOTES_PER_PAGE, arrOfData)
+      boundServeGoods()
     })
 }
 
