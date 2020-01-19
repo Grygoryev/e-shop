@@ -1,9 +1,9 @@
 const goodsContent = document.getElementById('goods')
-let url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2'
-const NOTES_PER_PAGE = 15;
-let amountOfGoodsInCart = localStorage.getItem('goodsInCart') ? localStorage.getItem('goodsInCart') : 0
+const url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2'
+const NOTES_PER_PAGE = 15
+let amountOfGoodsInCart = localStorage.getItem('goodsInCart') !== null ? localStorage.getItem('goodsInCart') : 0
 
-let arrOfData = []
+// let arrOfData = []
 let boundServeGoods = serveGoods.bind(this)
 
 let btnSortPriceUP = document.getElementById('btn-sort-price-to-up'),
@@ -11,18 +11,22 @@ let btnSortPriceUP = document.getElementById('btn-sort-price-to-up'),
     btnShowAvailable = document.getElementById('btn-show-goods-available'),
     btnResetFilters = document.getElementById('btn-reset-filters')
 
+let orderNotification = document.querySelector('.order-alert')
+
 let state = {
-  SHOW_ONLY_AVAILABLE: false
+  SHOW_ONLY_AVAILABLE: false,
+  goodsInCart: [],
+  goodsToBuy: [],
+  arrOfData: []
 }
 
 const getData = () => {
   return fetch(url)
     .then(response => response.json())
     .then(data => {
-      renderData(data, 0, 15)
-      data.map(good => arrOfData.push(good))
-      paginate(NOTES_PER_PAGE, arrOfData)
-      boundServeGoods()
+      renderData(data, 0, NOTES_PER_PAGE)
+      data.map(good => state.arrOfData.push(good))
+      paginate(NOTES_PER_PAGE, state.arrOfData)
     })
 }
 
@@ -46,16 +50,15 @@ function pageButtons(pages) {
             sliceEnd = this.value * NOTES_PER_PAGE + sliceStart
 
         if (state.SHOW_ONLY_AVAILABLE) {
-          showAvailableGoods(arrOfData, sliceStart, sliceEnd)
+          showAvailableGoods(state.arrOfData, sliceStart, sliceEnd)
         } else {
-          renderData(arrOfData, sliceStart, sliceEnd)
+          renderData(state.arrOfData, sliceStart, sliceEnd)
         }
-        boundServeGoods()
     })
   })
 }
 
-function paginate(goodsPerPage = 15, data) {
+function paginate(goodsPerPage = NOTES_PER_PAGE, data) {
 
   let pages = Math.ceil(data.length / goodsPerPage)
   pageButtons(pages, data, renderData)
@@ -79,14 +82,33 @@ function renderGood(good) {
 function serveGoods() {
   let goods = document.querySelectorAll('.good')
   let cartIndicator = document.querySelector('.amount-in-cart')
-  cartIndicator.innerHTML = localStorage.getItem('goodsInCart')
+  cartIndicator.innerHTML = amountOfGoodsInCart
 
   goods.forEach( function(good) {
-    good.addEventListener('click', (e) => {
+    good.addEventListener('click', function(e) {
       if (e.target.classList.contains('good__buy-btn')) {
-        amountOfGoodsInCart++
+        amountOfGoodsInCart++ 
         localStorage.setItem('goodsInCart', amountOfGoodsInCart)
-        console.log(amountOfGoodsInCart)
+        informAboutOrder()
+        
+        let currentItem = state.goodsInCart.find(item => item.goodID == this.id) 
+        let currentObj = state.arrOfData.find(item => item.index == this.id)
+        
+        if (!state.goodsToBuy.includes(currentObj) ) {
+          state.goodsToBuy.push(currentObj)
+        } 
+        
+        if  (currentItem) {
+          currentItem.quantity++
+        } else {
+          state.goodsInCart.push({
+            'goodID': this.id,
+            'quantity': 1
+          }) 
+        }
+
+        console.log(state)
+        localStorage.setItem('goodsToBuy', JSON.stringify(state.goodsInCart))
         cartIndicator.innerHTML = localStorage.getItem('goodsInCart')
       }
     })
@@ -96,9 +118,12 @@ function serveGoods() {
 function renderData(data, sliceStart, sliceEnd) {
   goodsContent.innerHTML = ''
   goodsContent.innerHTML = data.slice(sliceStart, sliceEnd).map(good => renderGood(good))
+  boundServeGoods()
 }
 
 function customParseFloat(float) {
+  // this code exist beacouse upcoming float has ',' instead of '.'
+  // with ',' sort() function doesn't work
   let commaPos = float.indexOf(',')
   return float.slice(0, commaPos ) + '.' + float.slice(commaPos + 1)
 }
@@ -108,7 +133,11 @@ function sortPriceToUp(data) {
     return customParseFloat(a.price.slice(1)) - customParseFloat(b.price.slice(1))
   }).slice(0) 
 
-  return renderData(sortedData, 0, 15)
+  if (state.SHOW_ONLY_AVAILABLE) {
+    return showAvailableGoods(sortedData, 0, NOTES_PER_PAGE)
+  } else {
+    return renderData(sortedData, 0, NOTES_PER_PAGE)
+  }
 }
 
 function sortPriceToDown(data) {
@@ -116,7 +145,11 @@ function sortPriceToDown(data) {
     return customParseFloat(b.price.slice(1)) - customParseFloat(a.price.slice(1))
   })
 
-  return renderData(sortedData, 0, 15)
+  if (state.SHOW_ONLY_AVAILABLE) {
+    return showAvailableGoods(sortedData, 0, NOTES_PER_PAGE)
+  } else {
+    return renderData(sortedData, 0, NOTES_PER_PAGE)
+  }
 }
 
 function showAvailableGoods(data, sliceStart, sliceEnd) {
@@ -131,24 +164,29 @@ function showAvailableGoods(data, sliceStart, sliceEnd) {
 
 function resetFilters() {
   state = {
+    ...state,
     SHOW_ONLY_AVAILABLE: false
   }
-  return renderData(arrOfData, 0, 15)
+  return renderData(state.arrOfData, 0, NOTES_PER_PAGE)
+}
+
+function informAboutOrder() {
+  orderNotification.innerHTML = `Good was added to cart`
+  orderNotification.classList.add('--show')
+
+  setTimeout( () => orderNotification.classList.remove('--show'), 1000)
 }
 
 btnSortPriceUP.addEventListener('click', () => {
-  sortPriceToUp(arrOfData)
-  boundServeGoods()
+  sortPriceToUp(state.arrOfData)
 })
 
 btnSortPriceDOWN.addEventListener('click', () => {
-  sortPriceToDown(arrOfData) 
-  boundServeGoods()  
+  sortPriceToDown(state.arrOfData) 
 })
 
 btnShowAvailable.addEventListener('click', () => {
-  showAvailableGoods(arrOfData)
-  boundServeGoods()  
+  showAvailableGoods(state.arrOfData)
 })
 
 btnResetFilters.addEventListener('click', () => resetFilters())

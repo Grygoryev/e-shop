@@ -1,9 +1,31 @@
 .app {
   padding: 15px; }
-  .app__sort-panel {
-    margin-bottom: 15px; }
-  .app__sort-option {
+
+.filter-panel {
+  margin-bottom: 15px; }
+  .filter-panel__sort-option {
     margin-right: 10px; }
+
+.order-alert {
+  position: fixed;
+  bottom: 20px;
+  opacity: 0;
+  visibility: hidden;
+  left: 50%;
+  -webkit-transform: translate(-50%, 30%);
+          transform: translate(-50%, 30%);
+  color: white;
+  padding: 15px;
+  border-radius: 15px;
+  background-color: rgba(0, 0, 0, 0.3);
+  -webkit-transition: 300ms all;
+  transition: 300ms all; }
+  .order-alert.--show {
+    opacity: 1;
+    -webkit-transform: translate(-50%, 0);
+            transform: translate(-50%, 0);
+    background-color: rgba(0, 0, 0, 0.6);
+    visibility: visible; }
 
 .nav.--fixed {
   position: fixed;
@@ -13,8 +35,8 @@
 .page-btn {
   cursor: pointer; }
 
-.app {
-  padding-top: 150px; }
+.common-body {
+  padding-top: 120px; }
 
 .goods {
   display: -webkit-box;
