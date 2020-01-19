@@ -1,10 +1,30 @@
-
 const goodsContent = document.getElementById('goods')
 let url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2'
 const NOTES_PER_PAGE = 15;
 let amountOfGoodsInCart = localStorage.getItem('goodsInCart') ? localStorage.getItem('goodsInCart') : 0
 
+let arrOfData = []
 let boundServeGoods = serveGoods.bind(this)
+
+let btnSortPriceUP = document.getElementById('btn-sort-price-to-up'),
+    btnSortPriceDOWN = document.getElementById('btn-sort-price-to-down'),
+    btnShowAvailable = document.getElementById('btn-show-goods-available'),
+    btnResetFilters = document.getElementById('btn-reset-filters')
+
+let state = {
+  SHOW_ONLY_AVAILABLE: false
+}
+
+const getData = () => {
+  return fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      renderData(data, 0, 15)
+      data.map(good => arrOfData.push(good))
+      paginate(NOTES_PER_PAGE, arrOfData)
+      boundServeGoods()
+    })
+}
 
 function pageButtons(pages) {
   let wrapper = document.getElementById('goods-pagination')
@@ -25,7 +45,11 @@ function pageButtons(pages) {
         let sliceStart = (this.value - 1) * NOTES_PER_PAGE,
             sliceEnd = this.value * NOTES_PER_PAGE + sliceStart
 
-        renderData(arrOfData, sliceStart, sliceEnd)
+        if (state.SHOW_ONLY_AVAILABLE) {
+          showAvailableGoods(arrOfData, sliceStart, sliceEnd)
+        } else {
+          renderData(arrOfData, sliceStart, sliceEnd)
+        }
         boundServeGoods()
     })
   })
@@ -36,7 +60,6 @@ function paginate(goodsPerPage = 15, data) {
   let pages = Math.ceil(data.length / goodsPerPage)
   pageButtons(pages, data, renderData)
 }
-
 
 function renderGood(good) {
   return (
@@ -65,33 +88,15 @@ function serveGoods() {
         localStorage.setItem('goodsInCart', amountOfGoodsInCart)
         console.log(amountOfGoodsInCart)
         cartIndicator.innerHTML = localStorage.getItem('goodsInCart')
-        // localStorage.key('goodsInCart') ? localStorage.getItem('goodsInCart') : amountOfGoodsInCart
       }
     })
   })
 }
 
-console.log( localStorage.getItem('goodsInCart') )
-
 function renderData(data, sliceStart, sliceEnd) {
   goodsContent.innerHTML = ''
   goodsContent.innerHTML = data.slice(sliceStart, sliceEnd).map(good => renderGood(good))
 }
-
-let arrOfData = []
-
-const getData = () => {
-  return fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      renderData(data, 0, 15)
-      data.map(good => arrOfData.push(good))
-      paginate(NOTES_PER_PAGE, arrOfData)
-      boundServeGoods()
-    })
-}
-
-getData()
 
 function customParseFloat(float) {
   let commaPos = float.indexOf(',')
@@ -99,24 +104,53 @@ function customParseFloat(float) {
 }
 
 function sortPriceToUp(data) {
-  let sortedData = data.sort( (a, b) => { 
+  let sortedData = data.slice(0).sort( (a, b) => { 
     return customParseFloat(a.price.slice(1)) - customParseFloat(b.price.slice(1))
-  }) 
+  }).slice(0) 
 
   return renderData(sortedData, 0, 15)
 }
 
 function sortPriceToDown(data) {
-  let sortedData = data.sort( (a, b) => { 
+  let sortedData = data.slice(0).sort( (a, b) => { 
     return customParseFloat(b.price.slice(1)) - customParseFloat(a.price.slice(1))
-  }) 
+  })
 
   return renderData(sortedData, 0, 15)
 }
 
-let btnSortPriceUP = document.getElementById('btn-sort-price-to-up'),
-    btnSortPriceDOWN = document.getElementById('btn-sort-price-to-down')
+function showAvailableGoods(data, sliceStart, sliceEnd) {
+  let availableGoods = data.filter(good => good.isInShop)
+  state = {
+    ...state,
+    SHOW_ONLY_AVAILABLE: true
+  }
 
-  btnSortPriceUP.addEventListener('click', () => sortPriceToUp(arrOfData) )
-  btnSortPriceDOWN.addEventListener('click', () => sortPriceToDown(arrOfData) )
+  return renderData(availableGoods, sliceStart, sliceEnd)
+}
 
+function resetFilters() {
+  state = {
+    SHOW_ONLY_AVAILABLE: false
+  }
+  return renderData(arrOfData, 0, 15)
+}
+
+btnSortPriceUP.addEventListener('click', () => {
+  sortPriceToUp(arrOfData)
+  boundServeGoods()
+})
+
+btnSortPriceDOWN.addEventListener('click', () => {
+  sortPriceToDown(arrOfData) 
+  boundServeGoods()  
+})
+
+btnShowAvailable.addEventListener('click', () => {
+  showAvailableGoods(arrOfData)
+  boundServeGoods()  
+})
+
+btnResetFilters.addEventListener('click', () => resetFilters())
+
+getData()

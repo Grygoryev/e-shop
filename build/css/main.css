@@ -1,3 +1,10 @@
+.app {
+  padding: 15px; }
+  .app__sort-panel {
+    margin-bottom: 15px; }
+  .app__sort-option {
+    margin-right: 10px; }
+
 .nav.--fixed {
   position: fixed;
   width: 100%;
