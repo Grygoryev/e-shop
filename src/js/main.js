@@ -1,10 +1,9 @@
 const url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2'
 const GOODS_PER_PAGE = 15
-// const boundServeGoods = serveGoods.bind(this)
 
 let state = {
   SHOW_ONLY_AVAILABLE: false,
-  cartInfo: localStorage.getItem('cartInfo') ? JSON.parse(localStorage.getItem('cartInfo')) : [],
+  ordersInfo: localStorage.getItem('ordersInfo') ? JSON.parse(localStorage.getItem('ordersInfo')) : [],
   goodsToOrder: [],
   arrOfData: [],
 }
@@ -17,6 +16,7 @@ const getData = () => fetch(url)
     initPagination(GOODS_PER_PAGE, state.arrOfData)
 })
 
+/* MAIN FUNCTIONS */
 function renderGood(good) {
   return (
     `
@@ -26,7 +26,11 @@ function renderGood(good) {
           <p class="good__description">${good.about}</p>
           <p class="good__price"> <b>Цена: </b> ${good.price}</p>
           <p class="good__available"> ${good.isInShop ? '<b> В наличии </b>' : 'Товара нет в наличии'}</p>
-          <button class="good__buy-btn btn blue" id="goodItem${good.index}">Добавить в корзину</button> 
+          <div class="good__buy-panel"> 
+            <button class="good__buy-option good__remove-btn btn red" id="goodItem${good.index}">-</button>
+            <div class="good__quantity-in-cart" >0</div>
+            <button class="good__buy-option good__buy-btn btn green" id="goodItem${good.index}">+</button> 
+          </div>
         </figure>  
       `
   )
@@ -58,7 +62,6 @@ function initPagination(goodsPerPage, data) {
   
   function createPageButtons(pagesQuantity) {
     const wrapper = document.getElementById('goods-pagination')
-    // wrapper.innerHTML = ''
 
     for (let pageNumber = 1; pageNumber < pagesQuantity; pageNumber++) {
       wrapper.innerHTML += `
@@ -96,36 +99,81 @@ function initData(data, sliceStart, sliceEnd) {
 function dispatchGoodOrder() {
   const goods = document.querySelectorAll('.good')
   const buyBtnClass = 'good__buy-btn'
+  const removeBtnClass = 'good__remove-btn'
+  const goodsIndicator = document.querySelectorAll('.good__quantity-in-cart')
 
   goods.forEach( (good) => {
 
     good.addEventListener('click', function(e) {
 
-      if (e.target.classList.contains(buyBtnClass)) {
-        const currentItem = state.cartInfo.find((item) => item.goodID == this.id)
-        const currentObj = state.arrOfData.find((item) => item.index == this.id)
+      const currentItem = state.ordersInfo.find((item) => item.goodID == this.id)
+      const currentObj = state.arrOfData.find((item) => item.index == this.id)
 
+      if (e.target.classList.contains(buyBtnClass)) {
         if (!state.goodsToOrder.includes(currentObj)) {
           state.goodsToOrder.push(currentObj)
           localStorage.setItem(`order${currentObj.index}`, JSON.stringify(currentObj))
         }
-
+    
         if (currentItem) {
           currentItem.quantity++
         } else {
-          state.cartInfo.push({
+          state.ordersInfo.push({
             goodID: this.id,
             price: customParseFloat(this.dataset.price),
             quantity: 1,
           })
         }
-
-        localStorage.setItem('cartInfo', JSON.stringify(state.cartInfo))
+    
+        localStorage.setItem('ordersInfo', JSON.stringify(state.ordersInfo))
         informAboutOrder(this.dataset.name)
         countItemsInCart()
+        console.log(state.ordersInfo)
+        updateGoodIndicator()
+      }
+
+      if (e.target.classList.contains(removeBtnClass)) {
+        handleRemovingOrder(currentObj, currentItem)
       }
     })
   })
+
+  let handleRemovingOrder = (currentObj, currentItem) => {
+    if (state.goodsToOrder.includes(currentObj)) {
+      state.goodToOrder = state.goodsToOrder.filter(good => good != currentObj)
+      localStorage.removeItem(`order${currentObj.index}`)
+    }
+
+    if (currentItem && currentItem.quantity > 1) {
+      currentItem.quantity-- 
+    } else {
+      state.ordersInfo = state.ordersInfo.filter(item => item.goodID != currentItem.goodID)
+    }
+
+    localStorage.setItem('ordersInfo', JSON.stringify(state.ordersInfo))
+    countItemsInCart()
+  }
+}
+
+/* SERVICE FUNCTIONS */
+function countItemsInCart() {
+  const cartIndicator = document.querySelector('.amount-in-cart')
+  let itemsInCart = JSON.parse(localStorage.getItem('ordersInfo'))
+
+  if ( itemsInCart )  {
+   return cartIndicator.innerHTML = itemsInCart.reduce( (summ, item) => summ += item.quantity, 0)
+  } else {
+    return cartIndicator.innerHTML = 0
+  }
+}
+
+function informAboutOrder(name) {
+  const orderNotification = document.querySelector('.order-alert')
+
+  orderNotification.innerHTML = `Товар '${name}' добавлен в корзину`
+  orderNotification.classList.add('--show')
+
+  setTimeout(() => orderNotification.classList.remove('--show'), 1000)
 }
 
 function customParseFloat(float) {
@@ -133,17 +181,6 @@ function customParseFloat(float) {
   // with ',' sort() function doesn't work
   const commaPos = float.indexOf(',')
   return `${float.slice(0, commaPos)}.${float.slice(commaPos + 1)}`
-}
-
-function countItemsInCart() {
-  const cartIndicator = document.querySelector('.amount-in-cart')
-  let itemsInCart = JSON.parse(localStorage.getItem('cartInfo'))
-
-  if ( itemsInCart )  {
-   return cartIndicator.innerHTML = itemsInCart.reduce( (summ, item) => summ += item.quantity, 0)
-  } else {
-    return cartIndicator.innerHTML = 0
-  }
 }
 
 /* beginof FILTER functions*/
@@ -184,14 +221,5 @@ function resetFilters() {
   return initData(resetedArr, 0, GOODS_PER_PAGE)
 }
 /* end of FILTER functions*/
-
-function informAboutOrder(name) {
-  const orderNotification = document.querySelector('.order-alert')
-
-  orderNotification.innerHTML = `Товар '${name}' добавлен в корзину`
-  orderNotification.classList.add('--show')
-
-  setTimeout(() => orderNotification.classList.remove('--show'), 1000)
-}
 
 initPage()

@@ -66,6 +66,10 @@
   top: 0;
 }
 
+.cart-page .filter-panel {
+  display: none;
+}
+
 .page-btn {
   cursor: pointer;
 }
@@ -107,8 +111,24 @@
     margin-top: 0;
   }
 
-  &__buy-btn {
+  &__buy-option.btn {
+    font-size: 21px;
+  }
+
+  &__buy-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-left: auto;
+  }
+
+  &__quantity-in-cart {
+    background-color: white;
+    height: 36px;
+    padding: 0 16px;
+    line-height: 32px;
+    font-size: 24px;
+    font-weight: bold;
   }
 }
 
