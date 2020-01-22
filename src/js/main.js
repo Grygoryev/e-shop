@@ -1,4 +1,5 @@
-const url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2'
+// const url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2' //300 items
+const url ='http://www.json-generator.com/api/json/get/cfWOfUvdaq?indent=2' //900 items
 const GOODS_PER_PAGE = 15
 
 let state = {
@@ -258,7 +259,7 @@ function countTotalSumm() {
   }  
 }
 
-/* beginof FILTER functions*/
+/* begin of FILTER functions*/
 function sortPriceToUp(data) {
   const sortedData = data.sort((a, b) => customParseFloat(a.price.slice(1)) - customParseFloat(b.price.slice(1))).slice(0)
 
