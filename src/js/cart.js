@@ -10,10 +10,11 @@ function countTotalSumm() {
   
   if (ordersInfo) {
     let totalPrice = ordersInfo.reduce((sum, item) => sum += item.price.slice(1) * item.quantity, 0)
-    return totalPlaceholder.innerHTML = 'Общая сумма покупки: ' + '<span>$' + totalPrice.toFixed(3) + '</span>'
-  } else {
-    return totalPlaceholder.innerHTML = 'Общая сумма покупки: 0' 
-  }  
+    totalPlaceholder.innerHTML = 'Общая сумма покупки: ' + '<span>$' + totalPrice.toFixed(3) + '</span>'
+    return 
+  } 
+
+  totalPlaceholder.innerHTML = 'Общая сумма покупки: 0'  
 }
 
 function initGoodsInCart() {

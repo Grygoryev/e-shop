@@ -1,5 +1,5 @@
-// const url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2' //300 items
-const url ='http://www.json-generator.com/api/json/get/cfWOfUvdaq?indent=2' //900 items
+// const url = 'http://www.json-generator.com/api/json/get/bVwPCFYwky?indent=2' //  300 items
+const url = 'http://www.json-generator.com/api/json/get/cfWOfUvdaq?indent=2' // 900 items
 const GOODS_PER_PAGE = 15
 
 let state = {
@@ -15,7 +15,7 @@ const getData = () => fetch(url)
     data.map((good) => state.arrOfData.push(good))
     initData(data, 0, GOODS_PER_PAGE)
     initPagination(GOODS_PER_PAGE, state.arrOfData)
-})
+  })
 
 /* MAIN FUNCTIONS */
 function renderGood(good) {
@@ -50,9 +50,9 @@ function initFilterPanel() {
   const btnShowAvailable = document.getElementById('btn-show-goods-available')
   const btnResetFilters = document.getElementById('btn-reset-filters')
 
-  btnSortPriceUP.addEventListener('click', () => sortPriceToUp(state.arrOfData) )
-  btnSortPriceDOWN.addEventListener('click', () => sortPriceToDown(state.arrOfData) )
-  btnShowAvailable.addEventListener('click', () => showAvailableGoods(state.arrOfData) )
+  btnSortPriceUP.addEventListener('click', () => sortPriceToUp(state.arrOfData))
+  btnSortPriceDOWN.addEventListener('click', () => sortPriceToDown(state.arrOfData))
+  btnShowAvailable.addEventListener('click', () => showAvailableGoods(state.arrOfData))
   btnResetFilters.addEventListener('click', () => resetFilters())
 }
 
@@ -60,7 +60,6 @@ function initPagination(goodsPerPage, data) {
   const pagesQuantity = Math.ceil(data.length / goodsPerPage)
   createPageButtons(pagesQuantity, 1, 5)
   handlePageSwitching(pagesQuantity)
-  
   
   function createPageButtons(pagesQuantity, beginButtonNumber, endButtonNumber) {
     const wrapper = document.getElementById('goods-pagination')
@@ -73,71 +72,52 @@ function initPagination(goodsPerPage, data) {
       `
     }
   }
+  
   function handlePageSwitching(pagesQuantity) {
     const buttons = document.querySelectorAll('.page-btn')
     const paginationBeginButton = document.getElementById('goods-pagination-to-begin')
     const paginationEndButton = document.getElementById('goods-pagination-to-end')
+    const renderSwitchedPage = (pressedButton) => {
+      const sliceStart = (pressedButton.value - 1) * GOODS_PER_PAGE
+      const sliceEnd = pressedButton.value * GOODS_PER_PAGE 
+
+      if (state.SHOW_ONLY_AVAILABLE) {
+        showAvailableGoods(state.arrOfData, sliceStart, sliceEnd)
+      } else {
+        initData(state.arrOfData, sliceStart, sliceEnd)
+      }
+    }
 
     paginationBeginButton.value = 1;
     paginationEndButton.value = pagesQuantity;
 
-    paginationBeginButton.addEventListener('click', function () {
+    paginationBeginButton.addEventListener('click', function() {
       createPageButtons(pagesQuantity, 1, 5)
       handlePageSwitching(pagesQuantity)
-
-      const sliceStart = (this.value - 1) * GOODS_PER_PAGE
-      const sliceEnd = this.value * GOODS_PER_PAGE 
-
-      if (state.SHOW_ONLY_AVAILABLE) {
-        showAvailableGoods(state.arrOfData, sliceStart, sliceEnd)
-      } else {
-        initData(state.arrOfData, sliceStart, sliceEnd)
-      }
+      renderSwitchedPage(this)
     })
 
-    paginationEndButton.addEventListener('click', function () {
+    paginationEndButton.addEventListener('click', function() {
       createPageButtons(pagesQuantity, pagesQuantity - 4, pagesQuantity)
       handlePageSwitching(pagesQuantity)
-
-      const sliceStart = (this.value - 1) * GOODS_PER_PAGE
-      const sliceEnd = this.value * GOODS_PER_PAGE 
-
-      if (state.SHOW_ONLY_AVAILABLE) {
-        showAvailableGoods(state.arrOfData, sliceStart, sliceEnd)
-      } else {
-        initData(state.arrOfData, sliceStart, sliceEnd)
-      }
+      renderSwitchedPage(this)
     })
    
     buttons.forEach((btn) => {
       btn.addEventListener('click', function () {
+        /* Below is a calculation of which buttons to render and which to hide
+        depending on pressed button */
         const step = 2
         let beginValue = (this.value - step) < 1 ? 1 : this.value - step
         let endValue = (+this.value + step > pagesQuantity ) ? pagesQuantity : beginValue + step * 2
 
-        if (pagesQuantity - step * 2  < beginValue) {
+        if (pagesQuantity - step * 2 < beginValue) {
           beginValue = pagesQuantity - step * 2
         }
-        
-        console.log(`
-          begin value = ${beginValue}
-          end value = ${endValue}
-          this value = ${this.value}
-
-          this value + step =  ${+this.value + step} 
-        `)
 
         createPageButtons(pagesQuantity, beginValue, endValue)
         handlePageSwitching(pagesQuantity)
-
-        const sliceStart = (this.value - 1) * GOODS_PER_PAGE
-        const sliceEnd = this.value * GOODS_PER_PAGE 
-  
-        if (state.SHOW_ONLY_AVAILABLE) {
-          showAvailableGoods(state.arrOfData, sliceStart, sliceEnd)
-        } else {
-          initData(state.arrOfData, sliceStart, sliceEnd)
-        }
+        renderSwitchedPage(this)
       })
     })
   }
@@ -163,8 +143,7 @@ function dispatchGoodOrder() {
       const currentItem = state.ordersInfo.find((item) => item.goodID == this.id)
       const currentObj = state.arrOfData.find((item) => item.index == this.id)
 
-      if (e.target.classList.contains(buyBtnClass)) { 
-
+      const handleAddGood = () => {
         if (!state.goodsToOrder.includes(currentObj)) {
           state.goodsToOrder.push(currentObj)
           localStorage.setItem(`order${currentObj.index}`, JSON.stringify(currentObj))
@@ -185,10 +164,8 @@ function dispatchGoodOrder() {
         countItemsInCart()
         updateGoodQuantity(good)
         countTotalSumm()
-        console.log(state.ordersInfo)
       }
-
-      if (e.target.classList.contains(removeBtnClass)) {
+      const handleRemoveGood = () => {
         if (state.goodsToOrder.includes(currentObj)) {
           state.goodToOrder = state.goodsToOrder.filter(good => good != currentObj)
           localStorage.removeItem(`order${currentObj.index}`)
@@ -204,6 +181,14 @@ function dispatchGoodOrder() {
         countItemsInCart()
         updateGoodQuantity(good)
         countTotalSumm()
+      }
+   
+      if (e.target.classList.contains(buyBtnClass)) { 
+        handleAddGood()
+      }
+
+      if (e.target.classList.contains(removeBtnClass)) {
+        handleRemoveGood()
       }
     })
   })
@@ -253,10 +238,10 @@ function countTotalSumm() {
   
   if (ordersInfo) {
     let totalPrice = ordersInfo.reduce((sum, item) => sum += item.price.slice(1) * item.quantity, 0)
-    return totalPlaceholder.innerHTML = 'Общая сумма покупки: $' + totalPrice.toFixed(3)
-  } else {
-    return totalPlaceholder.innerHTML = 'Общая сумма покупки: 0' 
-  }  
+    totalPlaceholder.innerHTML = 'Общая сумма покупки: $' + totalPrice.toFixed(3)
+    return
+  } 
+  totalPlaceholder.innerHTML = 'Общая сумма покупки: 0'
 }
 
 /* begin of FILTER functions*/
@@ -279,7 +264,6 @@ function sortPriceToDown(data) {
 }
 
 function showAvailableGoods(data, sliceStart, sliceEnd) {
-  
   const availableGoods = data.filter((good) => good.isInShop)
   state = {
     ...state,
@@ -298,6 +282,6 @@ function resetFilters() {
   }
   return initData(resetedArr, 0, GOODS_PER_PAGE)
 }
-/* end of FILTER functions*/
+/* end of FILTER functions  */
 
 initPage()

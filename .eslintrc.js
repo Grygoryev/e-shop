@@ -15,6 +15,9 @@ module.exports = {
   },
   rules: {
     "semi": ["off", "always"],
-    "no-plusplus" : ["off", "always"]
+    "no-plusplus": ["off", "always"],
+    "no-use-before-define": ["off", "always"],
+    "prefer-const": ["off", "always"]
+
   },
 };
