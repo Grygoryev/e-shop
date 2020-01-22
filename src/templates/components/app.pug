@@ -1,7 +1,10 @@
 #app.app
+  h4#cart-total.cart-total-price
   include ../parts/filterPanel
-  
-  #goods-pagination
+  .goods-pagintation-wrapper
+    button#goods-pagination-to-begin(value="1") В начало
+    #goods-pagination
+    button#goods-pagination-to-end В конец
   #goods.goods
 
   .order-alert

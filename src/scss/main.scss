@@ -38,6 +38,19 @@
     margin-right: 10px;
   }
 }
+.goods-pagintation-wrapper {
+  display: flex;
+  justify-content: flex-start;
+}
+
+#goods-pagination {
+  margin: 0 15px;
+}
+
+.cart-total-price span {
+  background-color: #4ff02642;
+  padding: 0 5px;
+}
 
 .order-alert {
   position: fixed;
