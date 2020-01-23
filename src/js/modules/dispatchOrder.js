@@ -10,17 +10,17 @@ export function dispatchGoodOrder() {
     updateGoodQuantity(good)
     good.addEventListener('click', function(e) {
 
-      const currentItem = state.ordersInfo.find((item) => item.goodID == this.id)
-      const currentObj = state.arrOfData.find((item) => item.index == this.id)
+      const currentOrderInfo = state.ordersInfo.find((item) => item.goodID == this.id)
+      const currentGood = state.arrOfData.find((item) => item.index == this.id)
 
       const handleAddGood = () => {
-        if (!state.goodsToOrder.includes(currentObj)) {
-          state.goodsToOrder.push(currentObj)
-          localStorage.setItem(`order${currentObj.index}`, JSON.stringify(currentObj))
+        if (!state.goodsToOrder.includes(currentGood)) {
+          state.goodsToOrder.push(currentGood)
+          localStorage.setItem(`order${currentGood.index}`, JSON.stringify(currentGood))
         }
     
-        if (currentItem) {
-          currentItem.quantity++
+        if (currentOrderInfo) {
+          currentOrderInfo.quantity++
         } else {
           state.ordersInfo.push({
             goodID: this.id,
@@ -36,15 +36,15 @@ export function dispatchGoodOrder() {
         countTotalSumm()
       }
       const handleRemoveGood = () => {
-        if (state.goodsToOrder.includes(currentObj)) {
-          state.goodToOrder = state.goodsToOrder.filter(good => good != currentObj)
-          localStorage.removeItem(`order${currentObj.index}`)
+        if (state.goodsToOrder.includes(currentGood)) {
+          state.goodToOrder = state.goodsToOrder.filter(good => good != currentGood)
+          localStorage.removeItem(`order${currentGood.index}`)
         }
     
-        if (currentItem && currentItem.quantity > 1) {
-          currentItem.quantity-- 
-        } else if (currentItem) {
-          state.ordersInfo = state.ordersInfo.filter(item => item.goodID != currentItem.goodID)
+        if (currentOrderInfo && currentOrderInfo.quantity > 1) {
+          currentOrderInfo.quantity-- 
+        } else if (currentOrderInfo) {
+          state.ordersInfo = state.ordersInfo.filter(item => item.goodID != currentOrderInfo.goodID)
         }
     
         localStorage.setItem('ordersInfo', JSON.stringify(state.ordersInfo))

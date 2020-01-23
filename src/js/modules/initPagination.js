@@ -23,6 +23,7 @@ export function initPagination(goodsPerPage, data) {
     const buttons = document.querySelectorAll('.page-btn')
     const paginationBeginButton = document.getElementById('goods-pagination-to-begin')
     const paginationEndButton = document.getElementById('goods-pagination-to-end')
+    
     const renderSwitchedPage = (pressedButton) => {
       const sliceStart = (pressedButton.value - 1) * state.GOODS_PER_PAGE
       const sliceEnd = pressedButton.value * state.GOODS_PER_PAGE 
