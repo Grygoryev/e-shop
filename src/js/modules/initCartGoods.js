@@ -5,12 +5,20 @@ export function initGoodsInCart() {
   const cart = document.getElementById('cart')
   let ordersInfo = JSON.parse(localStorage.getItem('ordersInfo'))
 
-  ordersInfo.forEach( order => {
-    let orderObj = localStorage.getItem(`order${order.goodID}`)
-    state.goodsToOrder.push( JSON.parse(orderObj))
-  })
+  dispatchOrdersInfo()
+  renderGoodsToOrder()
+
   
-  state.goodsToOrder.forEach(good => {
-    cart.innerHTML += renderGood(good)
-  })
+  function dispatchOrdersInfo() {
+    ordersInfo.forEach( order => {
+      let orderObj = localStorage.getItem(`order${order.goodID}`)
+      state.goodsToOrder.push( JSON.parse(orderObj))
+    })
+  }
+
+  function renderGoodsToOrder() {
+    state.goodsToOrder.forEach(good => {
+      cart.innerHTML += renderGood(good)
+    })
+  }
 }

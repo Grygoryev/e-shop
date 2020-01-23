@@ -37,7 +37,7 @@ export function dispatchGoodOrder() {
       }
       const handleRemoveGood = () => {
         if (state.goodsToOrder.includes(currentGood)) {
-          state.goodToOrder = state.goodsToOrder.filter(good => good != currentGood)
+          state.goodsToOrder = state.goodsToOrder.filter(good => good != currentGood)
           localStorage.removeItem(`order${currentGood.index}`)
         }
     
